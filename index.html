@@ -19,13 +19,8 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  html, body {
+  html {
     width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    background: white;
-    overflow: hidden;
   }
 
   body {
@@ -35,31 +30,24 @@
     font-size: 11px;
     line-height: 1.5;
     letter-spacing: -0.01em;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
-  /*
-   * .scale-wrapper holds the fixed 816x1056 canvas (8.5in x 11in @ 96dpi).
-   * JavaScript sets --scale so it fills the viewport on every screen size.
-   * On print, the transform is removed and the page renders at true 8.5x11in.
-   */
+  /* scale-wrapper: scales the 816px design to fill any viewport width */
   .scale-wrapper {
     width: 816px;
-    height: 1056px;
-    transform-origin: top center;
-    transform: scale(var(--scale, 1));
-    flex-shrink: 0;
+    transform-origin: top left;
+    /* JS sets this inline; fallback fills viewport */
+    transform: scale(1);
   }
 
   .page {
     width: 816px;
-    height: 1056px;
     background: white;
     display: grid;
     grid-template-rows: auto 1fr auto;
-    overflow: hidden;
   }
 
   /* HEADER */
@@ -273,19 +261,14 @@
     }
     html, body {
       width: 8.5in !important;
-      height: 11in !important;
-      overflow: visible !important;
       background: white !important;
     }
     .scale-wrapper {
       width: 8.5in !important;
-      height: 11in !important;
       transform: none !important;
     }
     .page {
       width: 8.5in !important;
-      height: 11in !important;
-      overflow: visible !important;
     }
     .section {
       break-inside: avoid;
@@ -588,16 +571,18 @@
 </div>
 
 <script>
-  // Scale the 816x1056 canvas to fill the viewport on any screen size.
-  // On print, CSS overrides remove the transform.
+  // Scale the 816px-wide design to fill the viewport width.
+  // Height is natural — content scrolls vertically as needed.
+  // On print, CSS resets the transform to render at true 8.5in width.
   function applyScale() {
     var wrapper = document.getElementById('scaleWrapper');
-    var scaleX = window.innerWidth  / 816;
-    var scaleY = window.innerHeight / 1056;
-    var scale  = Math.min(scaleX, scaleY);
+    if (!wrapper) return;
+    var scale = window.innerWidth / 816;
     wrapper.style.transform = 'scale(' + scale + ')';
-    // Adjust body height so there's no scroll gap after scaling
-    document.body.style.height = Math.round(1056 * scale) + 'px';
+    wrapper.style.transformOrigin = 'top left';
+    // Expand body to match the scaled height so scroll works correctly
+    var naturalH = wrapper.getBoundingClientRect().height;
+    document.body.style.height = (wrapper.offsetHeight * scale) + 'px';
   }
   applyScale();
   window.addEventListener('resize', applyScale);
