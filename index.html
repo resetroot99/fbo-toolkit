@@ -24,25 +24,42 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    background: white;
+    overflow: hidden;
   }
 
   body {
     font-family: 'Inter', sans-serif;
     background: white;
     color: var(--dark-text);
+    font-size: 11px;
     line-height: 1.5;
     letter-spacing: -0.01em;
-    /* Scale font relative to viewport so layout fills any container */
-    font-size: clamp(8px, 1.15vw, 13px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  /*
+   * .scale-wrapper holds the fixed 816x1056 canvas (8.5in x 11in @ 96dpi).
+   * JavaScript sets --scale so it fills the viewport on every screen size.
+   * On print, the transform is removed and the page renders at true 8.5x11in.
+   */
+  .scale-wrapper {
+    width: 816px;
+    height: 1056px;
+    transform-origin: top center;
+    transform: scale(var(--scale, 1));
+    flex-shrink: 0;
   }
 
   .page {
-    width: 100%;
-    min-height: 100vh;
-    margin: 0;
+    width: 816px;
+    height: 1056px;
     background: white;
     display: grid;
     grid-template-rows: auto 1fr auto;
+    overflow: hidden;
   }
 
   /* HEADER */
@@ -255,29 +272,29 @@
       margin: 0;
     }
     html, body {
-      width: 8.5in;
-      height: 11in;
-      font-size: 11px;
-      background: white;
+      width: 8.5in !important;
+      height: 11in !important;
+      overflow: visible !important;
+      background: white !important;
+    }
+    .scale-wrapper {
+      width: 8.5in !important;
+      height: 11in !important;
+      transform: none !important;
     }
     .page {
-      width: 8.5in;
-      min-height: 11in;
-      box-shadow: none;
-      page-break-inside: avoid;
+      width: 8.5in !important;
+      height: 11in !important;
+      overflow: visible !important;
     }
     .section {
-      page-break-inside: avoid;
-    }
-    .footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
+      break-inside: avoid;
     }
   }
 </style>
 </head>
 <body>
+<div class="scale-wrapper" id="scaleWrapper">
 <div class="page">
 
   <!-- HEADER -->
@@ -568,5 +585,22 @@
   </div>
 
 </div>
+</div>
+
+<script>
+  // Scale the 816x1056 canvas to fill the viewport on any screen size.
+  // On print, CSS overrides remove the transform.
+  function applyScale() {
+    var wrapper = document.getElementById('scaleWrapper');
+    var scaleX = window.innerWidth  / 816;
+    var scaleY = window.innerHeight / 1056;
+    var scale  = Math.min(scaleX, scaleY);
+    wrapper.style.transform = 'scale(' + scale + ')';
+    // Adjust body height so there's no scroll gap after scaling
+    document.body.style.height = Math.round(1056 * scale) + 'px';
+  }
+  applyScale();
+  window.addEventListener('resize', applyScale);
+</script>
 </body>
 </html>
